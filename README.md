@@ -17,7 +17,6 @@ Tai antrojo etapo xAPI integracija, kuri išplečia bazinį SCORM atitikmenį pr
 - `assessmenttemplate.html` – testavimo failas su klausimais ir hint’ais
 - `questions.js` – klausimų aprašai su galimais atsakymais ir `hint` lauku
 - `xapi-slide.js` – skaidrių peržiūros fiksavimo modulis su `experienced` ir `duration`
-- `style.css` – stiliai (testo ir užuominų dizainui)
 
 ## Kofiguracija
 
