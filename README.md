@@ -18,7 +18,7 @@ xAPIEngine/
 ├── game_objects.py      # Reikiamų žiadimo objektų klasių aprašymas
   ```
 
-## Paleigimas
+## Paleidimas
 
 1. Nusiklonuokite repozitoriją:
 
