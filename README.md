@@ -14,7 +14,6 @@ Tai bazinė xAPI integracija, kuri atkuria SCORM kurso testavimo scenarijų nar�
 
 - `assessmenttemplate.html` – pagrindinis testavimo šablonas su integruotu `tincan.js`
 - `questions.js` – klausimų rinkinys (JavaScript masyvas)
-- `style.css` – stiliaus aprašai
 
 ## Kofiguracija
 
