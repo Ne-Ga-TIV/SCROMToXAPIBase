@@ -2,7 +2,7 @@
 
 Paprastas žaidimų variklis sukurtas su `pygame`, integruotas su [xAPI (Experience API)](https://xapi.com/) žaidėjų veikloms sekti. Sukurtas mokymosi veikloms registruoti naudojant LRS (Learning Record Store), pavyzdžiui, [Veracity LRS](https://veracity.fpg.unc.edu/).
 
-## 🔧 Funkcionalumas
+## Funkcionalumas
 
 - Pagrindinis 2D žaidimų variklis su Python ir pygame
 - Žaidėjo veiksmų sekimas (judėjimas, sąveika, objektų kūrimas)
