@@ -24,6 +24,12 @@ class Player(GameObject):
         self.remaining_moves = 10
         self.used_moves = 0
 
+
+
+    def update(self, grid_width, grid_height):
+        pass
+    
+    
     def move(self, direction):
         if self.remaining_moves > 0:
             if direction == "up":
@@ -40,10 +46,7 @@ class Player(GameObject):
 
             self.remaining_moves -= 1
             self.used_moves += 1
-
-    def update(self, grid_width, grid_height):
-        pass
-
+    
     def reset_for_next_level(self):
         self.items_collected = 0
         self.level += 1
