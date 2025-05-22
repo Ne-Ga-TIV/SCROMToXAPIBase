@@ -15,9 +15,7 @@ Paprastas žaidimų variklis sukurtas su `pygame`, integruotas su [xAPI (Experie
 xAPIEngine/
 ├── main.py              # Pagrindinis paleidimo failas
 ├── engine.py            # Žaidimo variklio klasė (Engine) su xAPI integracija
-├── scene.py             # Bazinė klasė žaidimo scenoms
-├── simple_game.py       # Pavyzdinė scena su žaidimo logika (žaidėjas + objektai)
-├── requirements.txt     # Priklausomybių sąrašas (pygame, requests)
+├── game_objects.py      # Reikiamų žiadimo objektų klasių aprašymas
   ```
 
 ## Paleigimas
