@@ -41,4 +41,4 @@ Tai antrojo etapo xAPI integracija, kuri išplečia bazinį SCORM atitikmenį pr
    git clone https://github.com/Ne-Ga-TIV/BD2025.git
    cd BD2025/xAPIExtended
 
-2. Paleisketi Playing.html per savo internet naršykle
+2. Paleisketi `Playing.html` per savo internet naršykle
