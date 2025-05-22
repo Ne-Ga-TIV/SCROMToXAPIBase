@@ -29,7 +29,7 @@ if __name__ == "__main__":
             for item in items:
                 engine.add_game_object(item)
 
-            engine.log_event("kuhiva", "started", f"Level{player.level}")
+            engine.log_event("kuhiva", "started", f" Level{player.level}")
 
             while player.items_collected < player.level and player.remaining_moves > 0:
                 engine.render_grid(6, 6, [player] + items, player)
