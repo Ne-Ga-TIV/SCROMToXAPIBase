@@ -27,20 +27,50 @@
         actor: actor
       });
       console.log("TinCan initialized:", tincan);
+
+      // Siunčiame experienced kai įkeltas puslapis
+      const experiencedStatement = {
+        verb: {
+          id: "http://adlnet.gov/expapi/verbs/experienced",
+          display: { "en-US": "experienced" }
+        },
+        object: {
+          id: "http://example.com/assessment/content",
+          definition: {
+            name: { "en-US": "Assessment Slide" },
+            description: { "en-US": "Slide content viewed before questions" }
+          },
+          objectType: "Activity"
+        },
+        result: {
+          duration: "PT5S" // Laikinai fiksuotas, galima daryti dinaminiu
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      tincan.sendStatement(experiencedStatement, function (err, xhr) {
+        if (err !== null) {
+          console.error("xAPI experienced error:", err);
+        } else {
+          console.log("xAPI experienced sent:", experiencedStatement);
+        }
+      });
     });
 
     var QUESTION_TYPE_CHOICE = "choice";
     var QUESTION_TYPE_TF = "true-false";
     var QUESTION_TYPE_NUMERIC = "numeric";
 
-    function Question(id, text, type, answers, correctAnswer, objectiveId) {
-        this.Id = id;
-        this.Text = text;
-        this.Type = type;
-        this.Answers = answers;
-        this.CorrectAnswer = correctAnswer;
-        this.ObjectiveId = objectiveId;
+    function Question(id, text, type, answers, correctAnswer, objectiveId, hint = "") {
+    this.Id = id;
+    this.Text = text;
+    this.Type = type;
+    this.Answers = answers;
+    this.CorrectAnswer = correctAnswer;
+    this.ObjectiveId = objectiveId;
+    this.Hint = hint;
     }
+
 
     function Test(questions) {
         this.Questions = questions;
@@ -50,6 +80,40 @@
     }
 
     var test = new Test([]);
+    </script>
+
+    <script type="text/javascript">
+        function sendHintUsedStatement(question) {
+  const statement = {
+    verb: {
+      id: "http://adlnet.gov/expapi/verbs/used",
+      display: { "en-US": "used" }
+    },
+    object: {
+      id: `http://example.com/question/${question.Id}/hint`,
+      definition: {
+        name: { "en-US": question.Text },
+        description: { "en-US": "Hint used for this question." }
+      },
+      objectType: "Activity"
+    },
+    context: {
+      extensions: {
+        "http://example.com/extensions/hint-used": true
+      }
+    },
+    timestamp: new Date().toISOString()
+  };
+
+  tincan.sendStatement(statement, function (err, xhr) {
+    if (err !== null) {
+      console.error("xAPI hint statement error:", err);
+    } else {
+      console.log("xAPI hint used sent:", statement);
+    }
+  });
+}
+
     </script>
 
     <script type="text/javascript">
@@ -126,7 +190,10 @@
             },
             result: {
                 success: wasCorrect,
-                response: String(learnerResponse)
+                response: String(learnerResponse),
+                extensions: {
+                    "http://example.com/extensions/hint-used": document.getElementById("hint_" + question.Id).style.display !== 'none'
+                }
             },
             timestamp: new Date().toISOString()
         };
@@ -178,39 +245,63 @@
     document.getElementById("test").innerHTML = resultsSummary;
 }
 
-
     </script>
 
     <script type="text/javascript">
-    function RenderTest(test) {
-        document.write("<div id='test'><form id='frmTest' action='#'>");
+   function RenderTest(test) {
+    document.write("<div id='test'><form id='frmTest' action='#'>");
 
-        for (var i in test.Questions) {
-            var question = test.Questions[i];
-            document.write("<div id='question_" + question.Id + "' class='question'>" + question.Text);
+    for (var i in test.Questions) {
+        var question = test.Questions[i];
 
-            switch (question.Type) {
-                case QUESTION_TYPE_CHOICE:
-                    for (var j in question.Answers) {
-                        var answer = question.Answers[j];
-                        document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_" + j + "'/>" + answer + "</div>");
-                    }
-                    break;
+        let hintHTML = question.Hint
+          ? `<img src="https://cdn-icons-png.flaticon.com/128/18764/18764801.png"
+                    width="25" height="25"
+                   onclick='toggleHint("hint_${question.Id}", "${question.Id}")'
+                   style="cursor:pointer; margin-left:10px; vertical-align:middle;"
+                   title="Click for hint"/>
+             <div id='hint_${question.Id}' style='display:none; margin:5px 0; font-style:italic; color:#555; background:#ffffcc; border:1px solid #aaa; padding:4px 8px; border-radius:4px;'>${question.Hint}</div>`
+          : "";
 
-                case QUESTION_TYPE_TF:
-                    document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_True'/>True</div>");
-                    document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_False'/>False</div>");
-                    break;
+        document.write("<div id='question_" + question.Id + "' class='question'>" + question.Text + " " + hintHTML);
 
-                case QUESTION_TYPE_NUMERIC:
-                    document.write("<div class='answer'><input type='text' value='' id='question_" + question.Id + "_Text' onchange='CheckNumeric(this)'/></div>");
-                    break;
-            }
-            document.write("</div>");
+        switch (question.Type) {
+            case QUESTION_TYPE_CHOICE:
+                for (var j in question.Answers) {
+                    var answer = question.Answers[j];
+                    document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_" + j + "'/>" + answer + "</div>");
+                }
+                break;
+
+            case QUESTION_TYPE_TF:
+                document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_True'/>True</div>");
+                document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_False'/>False</div>");
+                break;
+
+            case QUESTION_TYPE_NUMERIC:
+                document.write("<div class='answer'><input type='text' value='' id='question_" + question.Id + "_Text' onchange='CheckNumeric(this)'/></div>");
+                break;
         }
-
-        document.write("<input type='button' value='Submit Answers' onclick='SubmitAnswers();' /></form></div>");
+        document.write("</div>");
     }
+
+    document.write("<input type='button' value='Submit Answers' onclick='SubmitAnswers();' /></form></div>");
+}
+
+function findQuestionById(id) {
+  return test.Questions.find(q => q.Id === id);
+}
+
+function toggleHint(hintId, questionId) {
+  const hintElement = document.getElementById(hintId);
+  if (hintElement.style.display === 'none') {
+    hintElement.style.display = 'block';
+    sendHintUsedStatement(findQuestionById(questionId));
+  } else {
+    hintElement.style.display = 'none';
+  }
+}
+
     </script>
 </head>
 <body>

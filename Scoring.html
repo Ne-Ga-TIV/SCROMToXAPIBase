@@ -5,6 +5,8 @@
     <style type="text/css" media="screen">
 		@import url( ../shared/style.css );
 	</style>
+    <script src="https://unpkg.com/tincanjs/build/tincan-min.js"></script>
+    <script src="../shared/xapi-slide.js"></script>
 </head>
 <body>
     <h1>Scoring</h1>
@@ -84,14 +86,9 @@ Double Bogey (or Buzzard)
 
  <div style="margin-top: 30px;">
   <button onclick="location.href='Par.html'">previous</button>
-  <button onclick="location.href='OtherScoring.html'">next</button>
+  <button onclick="sendSlideExperienceAndNext(location.href='OtherScoring.html')">next</button>
 </div>
-
-
 <script type="text/javascript">
 </script>
-
-
-
 </body>
 </html>
