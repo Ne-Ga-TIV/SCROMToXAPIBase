@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Assessment</title>
+    <style type="text/css" media="screen">
+		@import url(style.css);
+	</style>
+
+    <script src="https://unpkg.com/tincanjs/build/tincan-min.js"></script>
+    <script>
+    let tincan;
+    const actor = {
+      name: "Mokynis",
+      mbox: "mailto:mokynis@example.com"
+    };
+
+    window.addEventListener("load", function () {
+      tincan = new TinCan({
+        recordStores: [
+          {
+            endpoint: "https://xapi-quiz.lrs.io/xapi/",
+            username: "9f334b30-c044-4cea-b67f-ea772ca62a76",
+            password: "596bd54a-ad72-4751-9699-81b3eeb617f2",
+            allowFail: false
+          }
+        ],
+        actor: actor
+      });
+      console.log("TinCan initialized:", tincan);
+    });
+
+    var QUESTION_TYPE_CHOICE = "choice";
+    var QUESTION_TYPE_TF = "true-false";
+    var QUESTION_TYPE_NUMERIC = "numeric";
+
+    function Question(id, text, type, answers, correctAnswer, objectiveId) {
+        this.Id = id;
+        this.Text = text;
+        this.Type = type;
+        this.Answers = answers;
+        this.CorrectAnswer = correctAnswer;
+        this.ObjectiveId = objectiveId;
+    }
+
+    function Test(questions) {
+        this.Questions = questions;
+    }
+    Test.prototype.AddQuestion = function(question) {
+        this.Questions.push(question);
+    }
+
+    var test = new Test([]);
+    </script>
+
+    <script type="text/javascript">
+    var queryString = new String(document.location.search);
+    queryString = queryString.replace("?", "");
+    var includeFiles = queryString.split("&");
+    for (var i = 0; i < includeFiles.length; i++) {
+        var questionsFile = includeFiles[i].replace("questions=", "");
+        document.write('<script src="../' + questionsFile + '/questions.js" type="text/javascript"><\/script>');
+    }
+    </script>
+
+    <script type="text/javascript">
+    function CheckNumeric(obj) {
+        var userText = obj.value;
+        var numbersRegEx = /[^0-9]/g;
+        if (numbersRegEx.test(userText)) {
+            alert("Please enter only numeric values.");
+            obj.value = userText.replace(numbersRegEx, "");
+        }
+    }
+
+    function SubmitAnswers() {
+    var correctCount = 0;
+    var totalQuestions = test.Questions.length;
+    var resultsSummary = "";
+    console.log("SubmitAnswers called");
+
+    for (var i in test.Questions) {
+        var question = test.Questions[i];
+        var wasCorrect = false;
+        var correctAnswer = null;
+        var learnerResponse = "";
+
+        switch (question.Type) {
+            case QUESTION_TYPE_CHOICE:
+                for (var answerIndex = 0; answerIndex < question.Answers.length; answerIndex++) {
+                    if (question.CorrectAnswer == question.Answers[answerIndex]) {
+                        correctAnswer = answerIndex;
+                    }
+                    if (document.getElementById("question_" + question.Id + "_" + answerIndex).checked) {
+                        learnerResponse = answerIndex;
+                    }
+                }
+                break;
+
+            case QUESTION_TYPE_TF:
+                learnerResponse = document.getElementById("question_" + question.Id + "_True").checked ? "true" :
+                                  document.getElementById("question_" + question.Id + "_False").checked ? "false" : "";
+                correctAnswer = question.CorrectAnswer ? "true" : "false";
+                break;
+
+            case QUESTION_TYPE_NUMERIC:
+                correctAnswer = question.CorrectAnswer;
+                learnerResponse = document.getElementById("question_" + question.Id + "_Text").value;
+                break;
+        }
+
+        wasCorrect = (correctAnswer == learnerResponse);
+        if (wasCorrect) correctCount++;
+
+        const statement = {
+            verb: {
+                id: "http://adlnet.gov/expapi/verbs/answered",
+                display: { "en-US": "answered" }
+            },
+            object: {
+                id: `http://example.com/question/${question.Id}`,
+                definition: {
+                    name: { "en-US": question.Text },
+                    description: { "en-US": `Quiz question` }
+                },
+                objectType: "Activity"
+            },
+            result: {
+                success: wasCorrect,
+                response: String(learnerResponse)
+            },
+            timestamp: new Date().toISOString()
+        };
+
+        tincan.sendStatement(statement, function (err, xhr) {
+            if (err !== null) {
+                console.error("xAPI send error:", err);
+            } else {
+                console.log("xAPI sent:", statement);
+            }
+        });
+
+        resultsSummary += "<div class='questionResult'><h3>Question " + i + "</h3>" +
+                          (wasCorrect ? "<em>Correct</em><br>" : "<em>Incorrect</em><br>Your answer: " + learnerResponse + "<br>Correct answer: " + correctAnswer + "<br>") +
+                          "</div>";
+    }
+
+    var score = Math.round(correctCount * 100 / totalQuestions);
+    resultsSummary = "<h3>Score: " + score + "</h3>" + resultsSummary;
+
+    const completionStatement = {
+        verb: {
+            id: "http://adlnet.gov/expapi/verbs/completed",
+            display: { "en-US": "completed" }
+        },
+        object: {
+            id: "http://example.com/assessment",
+            definition: {
+                name: { "en-US": "Assessment Test" }
+            },
+            objectType: "Activity"
+        },
+        result: {
+            score: {
+                raw: score
+            }
+        },
+        timestamp: new Date().toISOString()
+    };
+
+    tincan.sendStatement(completionStatement, function (err, xhr) {
+        if (err !== null) {
+            console.error("xAPI result error:", err);
+        } else {
+            console.log("xAPI completed:", completionStatement);
+        }
+    });
+
+    document.getElementById("test").innerHTML = resultsSummary;
+}
+
+
+    </script>
+
+    <script type="text/javascript">
+    function RenderTest(test) {
+        document.write("<div id='test'><form id='frmTest' action='#'>");
+
+        for (var i in test.Questions) {
+            var question = test.Questions[i];
+            document.write("<div id='question_" + question.Id + "' class='question'>" + question.Text);
+
+            switch (question.Type) {
+                case QUESTION_TYPE_CHOICE:
+                    for (var j in question.Answers) {
+                        var answer = question.Answers[j];
+                        document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_" + j + "'/>" + answer + "</div>");
+                    }
+                    break;
+
+                case QUESTION_TYPE_TF:
+                    document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_True'/>True</div>");
+                    document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_False'/>False</div>");
+                    break;
+
+                case QUESTION_TYPE_NUMERIC:
+                    document.write("<div class='answer'><input type='text' value='' id='question_" + question.Id + "_Text' onchange='CheckNumeric(this)'/></div>");
+                    break;
+            }
+            document.write("</div>");
+        }
+
+        document.write("<input type='button' value='Submit Answers' onclick='SubmitAnswers();' /></form></div>");
+    }
+    </script>
+</head>
+<body>
+<h1>Knowledge Check</h1>
+<script type="text/javascript">
+RenderTest(test);
+</script>
+</body>
+</html>
