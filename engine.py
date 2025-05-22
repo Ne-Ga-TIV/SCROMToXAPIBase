@@ -43,6 +43,8 @@ class XAPIGameEngine:
             "description": {"en-US": f"Activity related to {object_id}"}
         })
 
+
+        
         statement = Statement(actor=actor, verb=verb, object=obj)
         if result:
             statement.result = Result(**result)
